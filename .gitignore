@@ -1,0 +1,10 @@
+.idea
+.env
+.venv
+.DS_Store
+*.pyc
+
+# Game saves
+wild_grass_pokemon_list.txt
+saves/
+player_*.json
