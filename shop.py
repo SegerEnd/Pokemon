@@ -8,7 +8,7 @@ pokemart_items = [
     ("Ultra Balls", 125),
     ("Master Balls", 10000),
     ("Razz Berries", 15),
-    ("Berry Seeds", 10),
+    ("Berry Seeds", 5),
     ("Leave the store", 0)
 ]
 

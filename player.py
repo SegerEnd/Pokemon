@@ -33,7 +33,7 @@ class Player:
             "skin": "🧍",
             "current_map": "grassland",
             "position": [1, 1],
-            "coins": 0,
+            "coins": 50, # Starter money
             "shiny_rate": 100,
             "inventory": {
                 "Poké Balls": 5, # Start the journey with 5 normal Poké Balls
@@ -592,6 +592,10 @@ class Player:
 
     def show_pokemon_list(self):
         """Show the list of Pokémon the player has caught."""
+
+        # Sort the Pokémon by their id
+        self.player_info["pokemon"] = sorted(self.player_info["pokemon"], key=lambda x: x['id'])
+
         print(f"\n{TextStyles.bold}Pokémon List{TextStyles.reset}")
         print(f"Total Pokémon: {len(self.player_info['pokemon'])}")
         for number, pokemon in enumerate(self.player_info["pokemon"], 1): # Start the numbering from 1
