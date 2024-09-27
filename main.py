@@ -98,9 +98,10 @@ def main_menu():
     print("2/(N)ew game")
     print("3/(L)oad existing game")
     print("4/(G)Generate new map")
-    print("5/(H)elp, instructions")
-    print("6/(Q)uit game")
-    print("7/(B)ack continue playing\n")
+    print("5/Set Map Width")
+    print("6/(H)elp, instructions")
+    print("7/(Q)uit game")
+    print("8/(B)ack continue playing\n")
 
     choice = input("Enter your choice: ").strip().lower()
     try:
@@ -122,14 +123,18 @@ def main_menu():
     elif choice in [4, 'g']:
         create_maps(player)
         return True
-    elif choice in [5, 'h']:
+    elif choice in [5]:
+        player.set_map_width()
+        create_maps(player)
+        return True
+    elif choice in [6, 'h']:
         clear_screen()
         player.show_help_menu()
         return True
-    elif choice in [6, 'q']:
+    elif choice in [7, 'q']:
         quit_game()
         return False
-    elif choice in [7, 'b', 'c']:
+    elif choice in [8, 'b', 'c']:
         return True
     else:
         print("Invalid choice. Please try again.")

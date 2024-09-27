@@ -146,7 +146,7 @@ def display_map(player):
         print()
 
 def create_maps(player):
-    rows, cols = 7, 20
+    rows, cols = player.get_info()["map_size"]
     maps = {
         'grassland': {'map_type': 'grassland', 'density': 0.4},
     }

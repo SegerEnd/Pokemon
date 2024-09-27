@@ -35,6 +35,7 @@ class Player:
             "position": [1, 1],
             "coins": 50, # Starter money
             "shiny_rate": 100,
+            "map_size": [7, 20],
             "inventory": {
                 "Poké Balls": 5, # Start the journey with 5 normal Poké Balls
             },
@@ -104,6 +105,29 @@ class Player:
     def set_info(self, info):
         """Set the player's information."""
         self.player_info.update(info)
+
+    def set_map_width(self, width=None):
+        """Set the width of the map."""
+        while True:
+            if width is None:
+                user_input = input("Enter the width for the map: ")
+                try:
+                    width = int(user_input)
+                except ValueError:
+                    print("Please enter a valid number for the width. Default is 20.")
+                    continue
+
+            if width < 10:
+                print("The width can't be less than 10.")
+                width = None  # Reset width and prompt for input again
+            elif width > 50:
+                print("The width can't be more than 75.")
+                width = None
+            else:
+                break
+
+        # Update the map size in the player's data
+        self.player_info["map_size"][1] = width
 
     def get_inventory_item(self, item):
         """Get the quantity of an item from the player's inventory."""
