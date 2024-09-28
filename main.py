@@ -5,7 +5,7 @@ import time
 from config import TextStyles
 from map import display_map, create_maps
 from player import Player, initialize_new_player, load_existing_player
-from pokemon import encounter_pokemon, get_wild_grass_pokemon_list, save_wild_grass_pokemon_list
+from pokemon import encounter_pokemon, get_wild_pokemon_list, save_wild_pokemon_list
 
 # Create a new player
 player = Player()
@@ -67,20 +67,21 @@ def handle_grass_encounter():
     if player.is_grass() and random_encounter():
         clear_screen()
         time.sleep(0.4)
-        encounter_pokemon(player, get_wild_grass_pokemon_list())
+        encounter_pokemon(player, get_wild_pokemon_list('grass'), 'grass')
 
 def handle_water_encounter():
     """Check for water encounter and trigger Pokémon battle if applicable."""
     if player.is_water() and random_encounter():
         clear_screen()
         time.sleep(0.4)
-        encounter_pokemon(player, get_wild_grass_pokemon_list(), 'water')
+        encounter_pokemon(player, get_wild_pokemon_list('water'), 'water')
 
 def quit_game():
     """Save the game and quit."""
     clear_screen()
     print("Thanks for playing, Goodbye!")
-    save_wild_grass_pokemon_list()
+    save_wild_pokemon_list('grass')
+    save_wild_pokemon_list('water')
     player.save()
 
 

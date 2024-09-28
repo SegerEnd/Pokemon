@@ -7,5 +7,6 @@ test.py
 
 # Game saves
 wild_grass_pokemon_list.txt
+wild_*_list.txt
 saves/
 player_*.json

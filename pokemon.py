@@ -74,8 +74,7 @@ def can_be_found_in_water(pokemon_id):
         for location in data:
             for version_detail in location['version_details']:
                 for encounter_detail in version_detail['encounter_details']:
-                    print(encounter_detail['method']['name'])
-                    if encounter_detail['method']['name'] in ['surf', 'super-rod', 'fish-chain']:
+                    if encounter_detail['method']['name'] in ['surf', 'rod', 'super-rod', 'fish-chain']:
                         return True
     return False
 
@@ -90,21 +89,27 @@ def extract_pokemon_data(data):
         'catch_rate': fetch_catch_rate(data['id'])
     }
 
-def preload_pokemon_list(count=10):
+def preload_pokemon_list(count=WILD_POKEMON_PRELOAD_COUNT, type='grass'):
     """Preload a list of Pokémon in advance to speed up the game for Pokémon that can be found in the wild.
     :return: List of the count of Pokémon.
     """
     pokemon_list = []
 
-    print("Loading wild Pokémon", end='')
+    print(f'Loading wild {type.strip().lower().capitalize()} Pokémon', end='')
 
     while len(pokemon_list) < count:
         print('.', end='')
         pokemon_id = random.randint(1, 149)  # Limit to first-generation Pokémon for simplicity
-        if can_be_found_in_grass(pokemon_id):
-            data = fetch_from_api(f'{POKEAPI_BASE_URL}pokemon/{pokemon_id}')
-            if data:
-                pokemon_list.append(extract_pokemon_data(data))
+        if type.strip().lower() == 'water':
+            if can_be_found_in_water(pokemon_id):
+                data = fetch_from_api(f'{POKEAPI_BASE_URL}pokemon/{pokemon_id}')
+                if data:
+                    pokemon_list.append(extract_pokemon_data(data))
+        else:
+            if can_be_found_in_grass(pokemon_id):
+                data = fetch_from_api(f'{POKEAPI_BASE_URL}pokemon/{pokemon_id}')
+                if data:
+                    pokemon_list.append(extract_pokemon_data(data))
 
     return pokemon_list
 
@@ -277,14 +282,22 @@ def encounter_menu(player, pokemon):
         print(f"{pokemon['name']} {pokemon_emoji} wants to escape while you where confused.")
         return encounter_menu(player, pokemon)
 
-def encounter_pokemon(player, list_pokemon, type='Grass'):
+def encounter_pokemon(player, list_pokemon, type='grass'):
     """Encounter a random Pokémon from the list of wild Pokémon."""
+
+    if type.strip().lower() not in ['grass', 'water']:
+        return False
 
     # When the list is less than 1, preload more Pokémon in advance
     if len(list_pokemon) < 1:
-        new_pokemon = preload_pokemon_list(WILD_POKEMON_PRELOAD_COUNT)
-        list_pokemon.extend(new_pokemon)
-        save_wild_grass_pokemon_list()
+        if type == 'grass':
+            new_pokemon = preload_pokemon_list(WILD_POKEMON_PRELOAD_COUNT, 'grass')
+            list_pokemon.extend(new_pokemon)
+            save_wild_pokemon_list(type.lower())
+        elif type == 'water':
+            new_pokemon = preload_pokemon_list(WILD_POKEMON_PRELOAD_COUNT, 'water')
+            list_pokemon.extend(new_pokemon)
+            save_wild_pokemon_list(type.lower())
 
     pokemon = random.choice(list_pokemon)
     list_pokemon.remove(pokemon)
@@ -343,44 +356,62 @@ def fetch_random_pokemon(player):
 
 
 wild_grass_pokemon_list = []
+wild_water_pokemon_list = []
 
-def get_wild_grass_pokemon_list():
-    """Get the list of wild grass Pokémon."""
-    return wild_grass_pokemon_list
+def get_wild_pokemon_list(pokemon_type):
+    """Get the list of wild Pokémon based on type (grass or water)."""
+    return wild_grass_pokemon_list if pokemon_type == 'grass' else wild_water_pokemon_list
 
-def set_wild_grass_pokemon_list(new_list):
-    """Set a new list of wild Pokémon."""
-    pokemon_list.clear()
-    pokemon_list.extend(new_list)
+def set_wild_pokemon_list(pokemon_type, new_list):
+    """Set a new list of wild Pokémon based on type (grass or water)."""
+    if pokemon_type == 'grass':
+        wild_grass_pokemon_list.clear()
+        wild_grass_pokemon_list.extend(new_list)
+    else:
+        wild_water_pokemon_list.clear()
+        wild_water_pokemon_list.extend(new_list)
 
-def save_wild_grass_pokemon_list():
-    """Save the list of wild Pokémon to a file for later use."""
-    print("Saving wild Pokémon data", end='')
-    with open(wild_grass_pokemon_file, 'w') as f:
-        for pokemon in wild_grass_pokemon_list:
-            print('.', end='') # Print a dot for each wild Pokémon saved for visual feedback
+def save_wild_pokemon_list(pokemon_type):
+    """Save the list of wild Pokémon to a file based on type (grass or water)."""
+
+    if pokemon_type.strip().lower() == 'water':
+        filename = wild_water_pokemon_file
+    else:
+        filename = wild_grass_pokemon_file
+
+    pokemon_list = get_wild_pokemon_list(pokemon_type)
+
+    if len(pokemon_list) < 1:
+        return
+
+    print(f"Saving wild {pokemon_type} Pokémon data", end='')
+    with open(filename, 'w') as f:
+        for pokemon in pokemon_list:
+            print('.', end='')  # Visual feedback
             f.write(f"{pokemon['id']},{pokemon['name']},{pokemon['type']},{pokemon['catch_rate']}\n")
 
-def load_wild_grass_pokemon_list():
-    """Load the list of wild Pokémon from a file. And add it to the global pokemon_list."""
-    global pokemon_list
-    print("Loading wild Pokémon data.")
+    print("\nSave completed.")
+
+def load_wild_pokemon_list(pokemon_type, filename, preload_count=WILD_POKEMON_PRELOAD_COUNT):
+    """Load the list of wild Pokémon from a file or preload if the file doesn't exist."""
+    pokemon_list = get_wild_pokemon_list(pokemon_type)
+    print(f"Loading wild {pokemon_type} Pokémon data.")
     try:
-        with open(wild_grass_pokemon_file, 'r') as f:
+        with open(filename, 'r') as f:
             for line in f:
                 data = line.strip().split(',')
-                wild_grass_pokemon_list.append({
+                pokemon_list.append({
                     'id': int(data[0]),
                     'name': data[1],
                     'type': data[2],
                     'catch_rate': int(data[3])
                 })
     except FileNotFoundError:
-        print("No wild Pokémon data found. Preloading Pokémon data.")
-        pokemon_list = preload_pokemon_list(WILD_POKEMON_PRELOAD_COUNT)
-        save_wild_grass_pokemon_list()
-
-    print("Loaded Pokémon data.")
+        print(f"No wild {pokemon_type} Pokémon data found. Preloading Pokémon data.")
+        if preload_count:
+            pokemon_list.extend(preload_pokemon_list(preload_count))
+            save_wild_pokemon_list(pokemon_type, filename)
+    print(f"Loaded {pokemon_type} Pokémon data.")
 
 # Load the wild grass Pokémon list when the module is imported
-load_wild_grass_pokemon_list()
+load_wild_pokemon_list('grass', wild_grass_pokemon_file)
