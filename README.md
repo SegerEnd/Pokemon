@@ -4,7 +4,7 @@ A Command Line Pokémon Game on a 2D grid.
 ## How to Play
 - Run the `main.py` file in PyCharm to start the game.
 - Upon launching, you'll be asked to enter your name and choose a character to begin your Pokémon journey.
-- Move around the 2D grid using the `W`, `A`, `S`, `D` keys to explore the world.
+- Move around the 2D grid using the `W`, `A`, `S`, `D` keys and `Enter` to explore the world.
 - Open your bag by pressing the `B` key.
 - You can press `Q` to quit the game.
 
