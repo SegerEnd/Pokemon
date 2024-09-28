@@ -2,15 +2,12 @@ import json
 import os
 import random
 import time
-from cgitb import reset
 from time import sleep
 
-from config import COLLISION_OBJECTS, INTERACTION_OBJECTS, TextStyles, ITEM_EMOJIS, GROWABLE_BERRIES, WATER_OBJECTS, \
-    GRASS_OBJECTS, POKEBALLS
+from config import COLLISION_OBJECTS, INTERACTION_OBJECTS, TextStyles, ITEM_EMOJIS, GROWABLE_BERRIES, WATER_OBJECTS, GRASS_OBJECTS, POKEBALLS
 from map import plant_seed, generate_map
 from pokemon import type_emoji, fetch_random_pokemon
 from shop import show_pokemart_menu, show_pokecenter_menu, show_professor_house_menu
-
 
 class Player:
     # Skin options for the player
@@ -23,8 +20,6 @@ class Player:
     player_info = {}
 
     maps = {}
-
-    consumed_pinap_berry = False
 
     def reset_info(self):
         """Reset the player's information to default values."""
@@ -160,6 +155,8 @@ class Player:
     def reset_shiny_rate(self):
         """Reset the shiny rate of the player."""
         self.player_info["shiny_rate"] = 100
+
+    consumed_pinap_berry = False
 
     def increase_shiny_rate(self):
         """Increase the shiny rate of the player. For example when the player uses a pinap berry for the next encounter."""
@@ -317,7 +314,7 @@ class Player:
         else:
             if ',' in direction:
                 try:
-                    print("Teleporting to custom coordinates...")
+                    print("Teleporting to coordinates...")
                     split_coords = direction.split(',')
                     new_i, new_j = int(split_coords[0]), int(split_coords[1])
                     print(f"Teleported to {new_i}, {new_j}")
@@ -330,7 +327,7 @@ class Player:
 
         if 0 <= new_i < len(map) and 0 <= new_j < len(map[0]):
             if self.is_collision(map, [new_i, new_j]):
-                print(f"Can't move there, it's a {map[new_i][new_j]}!")
+                print(f"Can't move there, it's a {map[new_i][new_j]}!") # Show the object Emoji the player collided with
                 return False
             else:
                 self.player_info["position"] = [new_i, new_j]
@@ -346,58 +343,51 @@ class Player:
 
     def multiple_choice_question(self, question, options, show_numbers=True):
         """Ask a multiple choice question and return the string of the selected option."""
+
+        if not question or not options:
+            raise ValueError("Question and options must not be empty.")
+
         print(question)
 
         if show_numbers:
+            # Display options with numbers
             for number, option in enumerate(options, 1):
                 print(f"{number}. {option}")
 
-            choice = input("Choose an option: ")
+            choice = input("Choose an option (number): ").strip()
 
-            try:
-                choice = int(choice)
+            # Validate numeric choice
+            if choice.isdigit() and 1 <= int(choice) <= len(options):
+                return options[int(choice) - 1]
+            else:
+                print("Invalid choice. Please enter a valid number.")
+                return self.multiple_choice_question(question, options, show_numbers)
 
-                if choice < 1 or choice > len(options):
-                    print("That's not a valid option")
-                    return self.multiple_choice_question(question, options)
-
-                return options[choice - 1]
-
-            except ValueError:
-                print("That's not a valid option")
-                return self.multiple_choice_question(question, options)
         else:
+            # Display options with letters
             for option in options:
-                first_letter = option[0].lower() if len(option) > 0 else ''
-                print(f"({first_letter}) {option}")
+                print(f"({option[0].lower()}) {option}")
 
-            choice = input("Choose an option: ").strip().lower()
+            choice = input("Choose an option (letter): ").strip().lower()
 
-            try:
-                choice = choice[0].lower()
-
-                if choice not in [option[0].lower() for option in options]:
-                    print("That's not a valid option")
-                    raise IndexError
-
-                # Get the full choice name from the options list
-                full_choice = [option for option in options if option[0].lower() == choice][0]
-
-                return full_choice
-            except IndexError:
-                return self.multiple_choice_question(question, options, False)
+            # Validate letter choice
+            if choice and any(choice == option[0].lower() for option in options):
+                return next(option for option in options if option[0].lower() == choice)
+            else:
+                print("Invalid choice. Please enter a valid letter.")
+                return self.multiple_choice_question(question, options, show_numbers)
 
     def yes_no_question(self, question):
         """Ask a yes/no question and return the answer. If the answer is wrong, ask again."""
         answer = input(f"{question} (y/n): ").strip().lower()
 
         try:
-            # if the answer is not 'y' or 'n', it will raise an Error
             if answer[0] == 'y':
                 return True
             elif answer[0] == 'n':
                 return False
             else:
+                # if the answer is not 'y' or 'n', it will raise an Error
                 print("Please enter 'y' for yes or 'n' for no.")
                 raise IndexError
 
@@ -714,7 +704,6 @@ class Player:
             if self.yes_no_question("Do you want to give this Pokémon a nickname?"):
                 hatched_pokemon['nickname'] = input("Enter a nickname: ").strip().capitalize()
 
-
             print(f"Added {hatched_pokemon['name'] if 'nickname' not in hatched_pokemon else hatched_pokemon['nickname']} to your bag.")
         else:
             print("Something went wrong while hatching the egg...\n")
@@ -763,7 +752,6 @@ def initialize_new_player(player):
     print("\nWelcome to the world of Pokémon! \n")
     player.choose_skin()
     player.show_help_menu()
-
 
 def load_existing_player(player):
     """Load an existing player's progress or start a new game."""
