@@ -410,7 +410,7 @@ def load_wild_pokemon_list(pokemon_type, filename, preload_count=WILD_POKEMON_PR
         print(f"No wild {pokemon_type} Pokémon data found. Preloading Pokémon data.")
         if preload_count:
             pokemon_list.extend(preload_pokemon_list(preload_count))
-            save_wild_pokemon_list(pokemon_type, filename)
+            save_wild_pokemon_list(pokemon_type)
     print(f"Loaded {pokemon_type} Pokémon data.")
 
 # Load the wild grass Pokémon list when the module is imported
